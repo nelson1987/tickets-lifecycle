@@ -10,29 +10,15 @@ using System.Text;
 
 namespace Blt.Tests.Configurations
 {
-    public class ApiFixture : IClassFixture<WebApplicationFactory<Program>>, IDisposable
+    public class ApiFixture : WebApplicationFactory<Program>
     {
-        public readonly HttpClient Client;
-
-        public ApiFixture(WebApplicationFactory<Program> webApplicationfactory)
-        {
-
-            var _factory = webApplicationfactory
-                .WithWebHostBuilder(builder => {
-                    builder.UseEnvironment("Testing");
-                    builder.ConfigureServices(services => {
-                        //services.Add
-                    });
-                });
-            Client = _factory.CreateClient();
-        }
-
-        public void Dispose()
-        {
-            Client.Dispose();
-        }
+        protected override void ConfigureWebHost(IWebHostBuilder builder)
+            => builder.UseEnvironment("Testing");
+                      //.ConfigureTestServices(services =>
+                      //{
+                      //    //services.Add
+                      //});
     }
-
 
     [CollectionDefinition("Base Collection")]
     public class BaseTestCollection : ICollectionFixture<BaseTestFixture>
@@ -43,6 +29,7 @@ namespace Blt.Tests.Configurations
     public abstract class BaseIntegrationTest
     {
         protected BaseTestFixture Fixture { get; }
+        protected readonly HttpClient Client;
         //protected readonly HttpClient Client;
         protected readonly ApiFixture Server;
 
@@ -51,22 +38,20 @@ namespace Blt.Tests.Configurations
             Fixture = fixture;
             //Client = fixture.Client;
             Server = fixture.Server;
+            Client = Server.CreateClient();
         }
     }
 
     public class BaseTestFixture : IAsyncDisposable
     {
-        //public readonly HttpClient Client;
         public readonly ApiFixture Server;
-        //public readonly WebApplicationFactory<Program> _factory;
         //public readonly MainContext MainContext;
         public BaseTestFixture()
         {
-            //Client = Server.CreateClient();
+            Server = new ApiFixture();
         }
         public async ValueTask DisposeAsync()
         {
-            //Client.Dispose();
             Server.Dispose();
             await Task.CompletedTask;
         }
@@ -83,7 +68,7 @@ namespace Blt.Tests.Configurations
         public async Task BuyTicket_Buy_Succesfully_IntegrationTest()
         {
             //var newTicket = 
-                await BuyNewTicket("Futebol", "12345678901");
+            await BuyNewTicket("Futebol", "12345678901");
         }
 
         private async Task/*<Ticket>*/ BuyNewTicket(string @event, string document)
@@ -94,33 +79,12 @@ namespace Blt.Tests.Configurations
                 Event = @event
             };
 
-            var response = await Server.Client.PostAsync("ticket", new StringContent(command.ToJson(), Encoding.UTF8, "application/json"));
+            var response = await Client.PostAsync("/ticket", new StringContent(command.ToJson(), Encoding.UTF8, "application/json"));
 
             Assert.Equal(201, (int)response.StatusCode);
 
             //throw new NotImplementedException();
         }
-        /*
-// Serialize our concrete class into a JSON String
-var stringPayload = JsonConvert.SerializeObject(payload);
-
-// Wrap our JSON inside a StringContent which then can be used by the HttpClient class
-var httpContent = new StringContent(stringPayload, Encoding.UTF8, "application/json");
-
-var httpClient = new HttpClient()
-    
-// Do the actual request and await the response
-var httpResponse = await httpClient.PostAsync("http://localhost/api/path", httpContent);
-
-// If the response contains content we want to read it!
-if (httpResponse.Content != null) {
-    var responseContent = await httpResponse.Content.ReadAsStringAsync();
-    
-    // From here on you could deserialize the ResponseContent back again to a concrete C# type using Json.Net
-}
-         */
-
-
     }
     public class TicketControllerUnitTest
     {

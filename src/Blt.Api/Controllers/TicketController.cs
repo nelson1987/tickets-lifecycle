@@ -21,7 +21,7 @@ namespace Blt.Api.Controllers
             return StatusCode(200);
         }
 
-        [HttpGet(Name = "BuyTicket")]
+        [HttpPost(Name = "BuyTicket")]
         public async Task<ActionResult> Buy(BuyTicketCommand command)
         {
             try
