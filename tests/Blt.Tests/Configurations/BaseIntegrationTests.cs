@@ -25,7 +25,7 @@ namespace Blt.Tests.Configurations
                 .CreateDefaultBuilder()
                 .UseEnvironment("Testing")
                 .UseStartup<Program>());
-            _httpClient = new HttpClient();
+            _httpClient = Server.CreateClient();
         }
         public async ValueTask DisposeAsync() => await Task.CompletedTask;
     }
