@@ -15,7 +15,7 @@ namespace Blt.Tests.Configurations
 
     public class BaseTestFixture : IAsyncDisposable
     {
-        public readonly HttpClient _httpClient;
+        public readonly HttpClient HttpClient;
         public readonly TestServer Server;
         //public readonly MainContext MainContext;
         public BaseTestFixture()
@@ -25,8 +25,13 @@ namespace Blt.Tests.Configurations
                 .CreateDefaultBuilder()
                 .UseEnvironment("Testing")
                 .UseStartup<Program>());
-            _httpClient = Server.CreateClient();
+            HttpClient = Server.CreateClient();
         }
-        public async ValueTask DisposeAsync() => await Task.CompletedTask;
+        public async ValueTask DisposeAsync()
+        {
+            HttpClient.Dispose();
+            Server.Dispose();
+            await Task.CompletedTask;
+        }
     }
 }
