@@ -19,8 +19,7 @@ namespace Blt.Api.Controllers
             _eventMessaging = eventMessaging;
         }
 
-        [HttpGet(Name = "GetTicket")]
-        [Route("{evento}/{documento}")]
+        [HttpGet("{evento}/{documento}", Name = "GetTicket")]
         public async Task<ActionResult<GetTicketResponse>> GetById(string evento, string documento)
         {
             var purchasedTicket = await _repository.GetEventByDocument(evento, documento);

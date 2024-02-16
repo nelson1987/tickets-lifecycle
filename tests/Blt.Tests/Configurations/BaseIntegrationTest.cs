@@ -15,6 +15,8 @@
             //Client = fixture.Client;
             Server = fixture.Server;
             Client = Server.CreateClient();
+
+            Fixture.DeleteAll().GetAwaiter();
         }
     }
 }

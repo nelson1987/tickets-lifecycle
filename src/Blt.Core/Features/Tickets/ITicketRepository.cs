@@ -5,5 +5,6 @@
         Task AddTicketAsync(Ticket ticket);
 
         Task<Ticket?> GetEventByDocument(string @event, string document);
+        Task<long> DeleteAll();
     }
 }
