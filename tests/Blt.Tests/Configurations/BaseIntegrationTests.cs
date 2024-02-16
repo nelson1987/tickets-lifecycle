@@ -4,18 +4,30 @@ using Microsoft.AspNetCore.TestHost;
 
 namespace Blt.Tests.Configurations
 {
-    public class BaseIntegrationTest
-    {
-    }
 
     [CollectionDefinition("Base Collection")]
     public class BaseTestCollection : ICollectionFixture<BaseTestFixture>
     {
     }
 
+    [Collection("Base Collection")]
+    public abstract class BaseIntegrationTest
+    {
+        protected BaseTestFixture Fixture { get; }
+        protected readonly HttpClient Client;
+        protected readonly TestServer Server;
+
+        protected BaseIntegrationTest(BaseTestFixture fixture)
+        {
+            Fixture = fixture;
+            Client = fixture.Client;
+            Server = fixture.Server;
+        }
+    }
+
     public class BaseTestFixture : IAsyncDisposable
     {
-        public readonly HttpClient HttpClient;
+        public readonly HttpClient Client;
         public readonly TestServer Server;
         //public readonly MainContext MainContext;
         public BaseTestFixture()
@@ -25,13 +37,23 @@ namespace Blt.Tests.Configurations
                 .CreateDefaultBuilder()
                 .UseEnvironment("Testing")
                 .UseStartup<Program>());
-            HttpClient = Server.CreateClient();
+            Client = Server.CreateClient();
         }
         public async ValueTask DisposeAsync()
         {
-            HttpClient.Dispose();
+            Client.Dispose();
             Server.Dispose();
             await Task.CompletedTask;
         }
+    }
+
+    public class TicketControllerIntegrationTest : BaseIntegrationTest 
+    {
+        public TicketControllerIntegrationTest(BaseTestFixture fixture) : base(fixture)
+        {
+            
+        }
+        
+
     }
 }
