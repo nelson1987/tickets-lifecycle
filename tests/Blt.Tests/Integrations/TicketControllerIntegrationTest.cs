@@ -1,4 +1,5 @@
 ﻿using Blt.Core.Features.Tickets.BuyTickets;
+using Blt.Core.Features.Tickets.GetTicket;
 using Blt.Core.Utils;
 using Blt.Tests.Configurations;
 using System.Text;
@@ -14,11 +15,14 @@ namespace Blt.Tests.Integrations
         [Fact]
         public async Task BuyTicket_Buy_Succesfully_IntegrationTest()
         {
-            //var newTicket =
-            await BuyNewTicket("Futebol", "12345678901");
+            var evento = "Futebol";
+            var documento = "12345678901";
+            var reserved = await BuyNewTicket(evento, documento);
+            Assert.True(reserved);
+            await CheckIfNewTicketWasBuyed(evento, documento);
         }
 
-        private async Task/*<Ticket>*/ BuyNewTicket(string @event, string document)
+        private async Task<bool> BuyNewTicket(string @event, string document)
         {
             var command = new BuyTicketCommand()
             {
@@ -29,6 +33,16 @@ namespace Blt.Tests.Integrations
             var response = await Client.PostAsync("/ticket", new StringContent(command.ToJson(), Encoding.UTF8, "application/json"));
 
             Assert.Equal(201, (int)response.StatusCode);
+
+            return (int)response.StatusCode == 201;
+        }
+        private async Task CheckIfNewTicketWasBuyed(string @event, string document)
+        {
+            var response = await Client.GetAsync($"/ticket/{@event}/{document}");
+
+            Assert.Equal(200, (int)response.StatusCode);
+
+            //return (int)response.StatusCode == 201;
         }
     }
 }

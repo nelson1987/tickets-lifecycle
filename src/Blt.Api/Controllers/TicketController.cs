@@ -20,9 +20,16 @@ namespace Blt.Api.Controllers
         }
 
         [HttpGet(Name = "GetTicket")]
-        public async Task<ActionResult<GetTicketResponse>> GetById(GetTicketQuery query)
+        [Route("{evento}/{documento}")]
+        public async Task<ActionResult<GetTicketResponse>> GetById(string evento, string documento)
         {
-            return StatusCode(200);
+            var purchasedTicket = await _repository.GetEventByDocument(evento, documento);
+            if (purchasedTicket == null)
+                return NotFound();
+            
+            var response = purchasedTicket!.MapTo<GetTicketResponse>();
+
+            return StatusCode(200, response);
         }
 
         [HttpPost(Name = "BuyTicket")]

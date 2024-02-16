@@ -3,8 +3,10 @@ using AutoFixture.AutoMoq;
 using Blt.Api.Controllers;
 using Blt.Core.Features.Tickets;
 using Blt.Core.Features.Tickets.BuyTickets;
+using Blt.Core.Features.Tickets.GetTicket;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using Newtonsoft.Json;
 
 namespace Blt.Tests.Units
 {
@@ -13,6 +15,7 @@ namespace Blt.Tests.Units
         private readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
         private readonly TicketController _controller;
         private readonly BuyTicketCommand _command;
+        private readonly Ticket _ticket;
         private readonly Mock<ITicketRepository> _repository;
         private readonly Mock<IEventMessaging> _messaging;
 
@@ -33,6 +36,11 @@ namespace Blt.Tests.Units
             _messaging
                  .Setup(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()))
                  .Returns(Task.CompletedTask);
+
+            _ticket = _fixture.Build<Ticket>()
+                .With(x => x.Event, _command.Event)
+                .With(x => x.Document, _command.Document)
+                .Create();
 
             _controller = _fixture.Build<TicketController>()
                 .OmitAutoProperties()
@@ -58,7 +66,7 @@ namespace Blt.Tests.Units
         {
             _repository
                  .Setup(x => x.GetEventByDocument(_command.Event, _command.Document))
-                 .Returns(Task.FromResult(new Ticket()));
+                 .Returns(Task.FromResult(_ticket)!);
 
             var response = await _controller.Buy(_command);
             ObjectResult result = (ObjectResult)response;
@@ -84,5 +92,26 @@ namespace Blt.Tests.Units
             _repository.Verify(x => x.AddTicketAsync(It.IsAny<Ticket>()), Times.Once);
             _messaging.Verify(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()), Times.Never);
         }
+
+
+        [Fact]
+        public async Task GetTicket_GetById_Succesfully_UnitTest()
+        {
+            _repository
+                 .Setup(x => x.GetEventByDocument(_command.Event, _command.Document))
+                 .Returns(Task.FromResult(_ticket)!);
+
+            var response = await _controller.GetById(_command.Event, _command.Document);
+            ObjectResult responseResult = (ObjectResult)response.Result!;
+            Assert.Equal(200, responseResult.StatusCode);
+
+            GetTicketResponse responseValue = (GetTicketResponse)responseResult.Value!;
+            Assert.NotNull(responseResult.Value);
+            Assert.Equal(_command.Event, responseValue.Event);
+            Assert.Equal(_command.Document, responseValue.Document);
+
+            _repository.Verify(x => x.GetEventByDocument(_command.Event, _command.Document), Times.Once);
+        }
+
     }
 }
