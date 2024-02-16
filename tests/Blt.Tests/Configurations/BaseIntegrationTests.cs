@@ -53,7 +53,9 @@ namespace Blt.Tests.Configurations
         {
             
         }
-        
-
+        [Fact]
+        public async Task GetTickets_GetById_IntegrationTest() 
+        { 
+        }
     }
 }
