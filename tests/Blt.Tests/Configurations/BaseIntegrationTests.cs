@@ -2,15 +2,37 @@
 using AutoFixture.AutoMoq;
 using Blt.Api.Controllers;
 using Blt.Core;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.TestHost;
+using Microsoft.AspNetCore.Mvc.Testing;
 using Moq;
 using System.Text;
 
 namespace Blt.Tests.Configurations
 {
+    public class ApiFixture : IClassFixture<WebApplicationFactory<Program>>, IDisposable
+    {
+        public readonly HttpClient Client;
+
+        public ApiFixture(WebApplicationFactory<Program> webApplicationfactory)
+        {
+
+            var _factory = webApplicationfactory
+                .WithWebHostBuilder(builder => {
+                    builder.UseEnvironment("Testing");
+                    builder.ConfigureServices(services => {
+                        //services.Add
+                    });
+                });
+            Client = _factory.CreateClient();
+        }
+
+        public void Dispose()
+        {
+            Client.Dispose();
+        }
+    }
+
 
     [CollectionDefinition("Base Collection")]
     public class BaseTestCollection : ICollectionFixture<BaseTestFixture>
@@ -21,34 +43,30 @@ namespace Blt.Tests.Configurations
     public abstract class BaseIntegrationTest
     {
         protected BaseTestFixture Fixture { get; }
-        protected readonly HttpClient Client;
-        protected readonly TestServer Server;
+        //protected readonly HttpClient Client;
+        protected readonly ApiFixture Server;
 
         protected BaseIntegrationTest(BaseTestFixture fixture)
         {
             Fixture = fixture;
-            Client = fixture.Client;
+            //Client = fixture.Client;
             Server = fixture.Server;
         }
     }
 
     public class BaseTestFixture : IAsyncDisposable
     {
-        public readonly HttpClient Client;
-        public readonly TestServer Server;
+        //public readonly HttpClient Client;
+        public readonly ApiFixture Server;
+        //public readonly WebApplicationFactory<Program> _factory;
         //public readonly MainContext MainContext;
         public BaseTestFixture()
         {
-            Server = new TestServer(
-                WebHost
-                .CreateDefaultBuilder()
-                .UseEnvironment("Testing")
-                .UseStartup<Program>());
-            Client = Server.CreateClient();
+            //Client = Server.CreateClient();
         }
         public async ValueTask DisposeAsync()
         {
-            Client.Dispose();
+            //Client.Dispose();
             Server.Dispose();
             await Task.CompletedTask;
         }
@@ -76,9 +94,7 @@ namespace Blt.Tests.Configurations
                 Event = @event
             };
 
-            var response = await Server.CreateRequest("ticket")
-                .And(req => req.Content = new StringContent(command.ToJson(), Encoding.UTF8, "application/json"))
-                .PostAsync();
+            var response = await Server.Client.PostAsync("ticket", new StringContent(command.ToJson(), Encoding.UTF8, "application/json"));
 
             Assert.Equal(201, (int)response.StatusCode);
 
