@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using System.Windows.Input;
 
 namespace Blt.Core
 {
@@ -14,9 +13,9 @@ namespace Blt.Core
             CreateMap<BuyTicketCommand, Ticket>()
                 .ForMember(x => x.Id, y => y.Ignore());
             CreateMap<Ticket, TicketReservedEvent>();
-
         }
     }
+
     public static class ComnadExtensions
     {
         public static string ToJson(this object command)
@@ -24,6 +23,7 @@ namespace Blt.Core
             return System.Text.Json.JsonSerializer.Serialize(command);
         }
     }
+
     public static class ObjectMapper
     {
         private static readonly Lazy<IMapper> Lazy = new(() =>
