@@ -1,4 +1,7 @@
-using Blt.Core;
+using Blt.Core.Features.Tickets;
+using Blt.Core.Features.Tickets.BuyTickets;
+using Blt.Core.Features.Tickets.GetTicket;
+using Blt.Core.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Blt.Api.Controllers

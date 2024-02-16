@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Blt.Core.Features.Tickets;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Blt.Core
 {

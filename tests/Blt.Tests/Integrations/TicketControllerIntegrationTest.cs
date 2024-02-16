@@ -1,4 +1,5 @@
-﻿using Blt.Core;
+﻿using Blt.Core.Features.Tickets.BuyTickets;
+using Blt.Core.Utils;
 using Blt.Tests.Configurations;
 using System.Text;
 

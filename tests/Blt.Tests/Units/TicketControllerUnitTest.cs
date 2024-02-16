@@ -1,7 +1,8 @@
 ﻿using AutoFixture;
 using AutoFixture.AutoMoq;
 using Blt.Api.Controllers;
-using Blt.Core;
+using Blt.Core.Features.Tickets;
+using Blt.Core.Features.Tickets.BuyTickets;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
