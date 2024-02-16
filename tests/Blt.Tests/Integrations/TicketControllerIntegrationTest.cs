@@ -1,5 +1,4 @@
 ﻿using Blt.Core.Features.Tickets.BuyTickets;
-using Blt.Core.Features.Tickets.GetTicket;
 using Blt.Core.Utils;
 using Blt.Tests.Configurations;
 using System.Text;
@@ -36,6 +35,7 @@ namespace Blt.Tests.Integrations
 
             return (int)response.StatusCode == 201;
         }
+
         private async Task CheckIfNewTicketWasBuyed(string @event, string document)
         {
             var response = await Client.GetAsync($"/ticket/{@event}/{document}");

@@ -6,7 +6,6 @@ using Blt.Core.Features.Tickets.BuyTickets;
 using Blt.Core.Features.Tickets.GetTicket;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
-using Newtonsoft.Json;
 
 namespace Blt.Tests.Units
 {
@@ -93,7 +92,6 @@ namespace Blt.Tests.Units
             _messaging.Verify(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()), Times.Never);
         }
 
-
         [Fact]
         public async Task GetTicket_GetById_Succesfully_UnitTest()
         {
@@ -112,6 +110,5 @@ namespace Blt.Tests.Units
 
             _repository.Verify(x => x.GetEventByDocument(_command.Event, _command.Document), Times.Once);
         }
-
     }
 }

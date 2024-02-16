@@ -26,7 +26,7 @@ namespace Blt.Api.Controllers
             var purchasedTicket = await _repository.GetEventByDocument(evento, documento);
             if (purchasedTicket == null)
                 return NotFound();
-            
+
             var response = purchasedTicket!.MapTo<GetTicketResponse>();
 
             return StatusCode(200, response);
