@@ -1,9 +1,8 @@
 ﻿using Blt.Core.Features.Tickets.BuyTickets;
 
-namespace Blt.Core.Features.Tickets
+namespace Blt.Core.Features.Tickets;
+
+public interface IEventMessaging
 {
-    public interface IEventMessaging
-    {
-        Task SendTicketReservedAsync(TicketReservedEvent @event);
-    }
+    Task SendTicketReservedAsync(TicketReservedEvent @event);
 }

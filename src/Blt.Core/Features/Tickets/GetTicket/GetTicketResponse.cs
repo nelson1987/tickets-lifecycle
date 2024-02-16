@@ -1,9 +1,8 @@
-﻿namespace Blt.Core.Features.Tickets.GetTicket
+﻿namespace Blt.Core.Features.Tickets.GetTicket;
+
+public record GetTicketResponse
 {
-    public record GetTicketResponse
-    {
-        public Guid Id { get; set; }
-        public string Event { get; set; }
-        public string Document { get; set; }
-    }
+    public Guid Id { get; set; }
+    public required string Event { get; set; }
+    public required string Document { get; set; }
 }

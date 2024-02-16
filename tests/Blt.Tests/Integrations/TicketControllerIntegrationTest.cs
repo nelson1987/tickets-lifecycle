@@ -3,46 +3,45 @@ using Blt.Core.Utils;
 using Blt.Tests.Configurations;
 using System.Text;
 
-namespace Blt.Tests.Integrations
+namespace Blt.Tests.Integrations;
+
+public class TicketControllerIntegrationTest : BaseIntegrationTest
 {
-    public class TicketControllerIntegrationTest : BaseIntegrationTest
+    public TicketControllerIntegrationTest(BaseTestFixture fixture) : base(fixture)
     {
-        public TicketControllerIntegrationTest(BaseTestFixture fixture) : base(fixture)
+    }
+
+    [Fact]
+    public async Task BuyTicket_Buy_Succesfully_IntegrationTest()
+    {
+        var evento = "Futebol";
+        var documento = "12345678901";
+        var reserved = await BuyNewTicket(evento, documento);
+        Assert.True(reserved);
+        await CheckIfNewTicketWasBuyed(evento, documento);
+    }
+
+    private async Task<bool> BuyNewTicket(string @event, string document)
+    {
+        var command = new BuyTicketCommand()
         {
-        }
+            Document = document,
+            Event = @event
+        };
 
-        [Fact]
-        public async Task BuyTicket_Buy_Succesfully_IntegrationTest()
-        {
-            var evento = "Futebol";
-            var documento = "12345678901";
-            var reserved = await BuyNewTicket(evento, documento);
-            Assert.True(reserved);
-            await CheckIfNewTicketWasBuyed(evento, documento);
-        }
+        var response = await Client.PostAsync("/ticket", new StringContent(command.ToJson(), Encoding.UTF8, "application/json"));
 
-        private async Task<bool> BuyNewTicket(string @event, string document)
-        {
-            var command = new BuyTicketCommand()
-            {
-                Document = document,
-                Event = @event
-            };
+        Assert.Equal(201, (int)response.StatusCode);
 
-            var response = await Client.PostAsync("/ticket", new StringContent(command.ToJson(), Encoding.UTF8, "application/json"));
+        return (int)response.StatusCode == 201;
+    }
 
-            Assert.Equal(201, (int)response.StatusCode);
+    private async Task CheckIfNewTicketWasBuyed(string @event, string document)
+    {
+        var response = await Client.GetAsync($"/ticket/{@event}/{document}");
 
-            return (int)response.StatusCode == 201;
-        }
+        Assert.Equal(200, (int)response.StatusCode);
 
-        private async Task CheckIfNewTicketWasBuyed(string @event, string document)
-        {
-            var response = await Client.GetAsync($"/ticket/{@event}/{document}");
-
-            Assert.Equal(200, (int)response.StatusCode);
-
-            //return (int)response.StatusCode == 201;
-        }
+        //return (int)response.StatusCode == 201;
     }
 }

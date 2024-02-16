@@ -1,7 +1,6 @@
-﻿namespace Blt.Tests.Configurations
+﻿namespace Blt.Tests.Configurations;
+
+[CollectionDefinition("Base Collection")]
+public class BaseTestCollection : ICollectionFixture<BaseTestFixture>
 {
-    [CollectionDefinition("Base Collection")]
-    public class BaseTestCollection : ICollectionFixture<BaseTestFixture>
-    {
-    }
 }

@@ -1,8 +1,7 @@
-﻿namespace Blt.Core.Features.Tickets.BuyTickets
+﻿namespace Blt.Core.Features.Tickets.BuyTickets;
+
+public record BuyTicketCommand
 {
-    public record BuyTicketCommand
-    {
-        public string Event { get; set; }
-        public string Document { get; set; }
-    }
+    public required string Event { get; set; }
+    public required string Document { get; set; }
 }
