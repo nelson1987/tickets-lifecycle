@@ -9,6 +9,7 @@ namespace Blt.Api.Controllers
     {
         private readonly ITicketRepository _repository;
         private readonly IEventMessaging _eventMessaging;
+
         public TicketController(ITicketRepository repository, IEventMessaging eventMessaging)
         {
             _repository = repository;
