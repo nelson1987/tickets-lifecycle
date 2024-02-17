@@ -32,6 +32,6 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal      
     - name: Remove test environment
-      run: sleep 10 docker-compose -f 'tests/Blt.Tests/docker-compose.yaml' down
+      run: docker-compose -f 'tests/Blt.Tests/docker-compose.yaml' down
     - name: Test
       run: dotnet test --no-build --verbosity normal
