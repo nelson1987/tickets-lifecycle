@@ -5,18 +5,18 @@ public abstract class BaseIntegrationTest
 {
     protected BaseTestFixture Fixture { get; }
     protected readonly HttpClient Client;
-
-    //protected readonly HttpClient Client;
     protected readonly ApiFixture Server;
+    protected readonly MongoFixture MongoFixture;
+    protected readonly MassTransitFixture MassTransitFixture;
 
     protected BaseIntegrationTest(BaseTestFixture fixture)
     {
         Fixture = fixture;
-        //Client = fixture.Client;
+        MongoFixture = fixture.MongoFixture;
+        MassTransitFixture = fixture.MassTransitFixture;
         Server = fixture.Server;
         Client = Server.CreateClient();
 
-        Fixture.DeleteAll().GetAwaiter();
-        Fixture.ConsumeAll().GetAwaiter();
+        Fixture.Reset().GetAwaiter();
     }
 }
