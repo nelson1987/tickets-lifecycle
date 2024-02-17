@@ -25,8 +25,9 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Create test environment
-      with:
-        compose-file: "./tests/Blt.Tests/docker-compose.yml"
-        run: docker-compose up --build
+      # with:
+      #   compose-file: "./tests/Blt.Tests/docker-compose.yml"
+      #   run: docker-compose up --build
+      run: docker-compose -f 'tests/Blt.Tests/docker-compose.yaml' up
     - name: Test
       run: dotnet test --no-build --verbosity normal
