@@ -10,7 +10,8 @@ public class AutomapperProfile : Profile
     public AutomapperProfile()
     {
         CreateMap<BuyTicketCommand, Ticket>()
-            .ForMember(x => x.Id, y => y.Ignore());
+            .ForMember(x => x.Id, y => y.Ignore())
+            .ForMember(x => x.Status, y => y.Ignore());
         CreateMap<Ticket, TicketReservedEvent>();
         CreateMap<Ticket, GetTicketResponse>();
     }
