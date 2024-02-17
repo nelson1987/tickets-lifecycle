@@ -17,5 +17,6 @@ public abstract class BaseIntegrationTest
         Client = Server.CreateClient();
 
         Fixture.DeleteAll().GetAwaiter();
+        Fixture.ConsumeAll().GetAwaiter();
     }
 }

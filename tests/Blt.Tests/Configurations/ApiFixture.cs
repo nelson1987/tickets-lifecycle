@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using MassTransit;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 
 namespace Blt.Tests.Configurations;
@@ -6,7 +7,13 @@ namespace Blt.Tests.Configurations;
 public class ApiFixture : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
-        => builder.UseEnvironment("Testing");
+        => builder.UseEnvironment("Testing")
+                    .ConfigureServices(services =>
+                    {
+                        services.AddMassTransitTestHarness(x =>
+                        {
+                        });
+                    });
 
     //.ConfigureTestServices(services =>
     //{

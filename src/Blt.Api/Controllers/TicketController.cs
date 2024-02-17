@@ -51,7 +51,7 @@ public class TicketController : ControllerBase
         }
         catch (Exception)
         {
-            return BadRequest($"Erro ao tentar comprar um ingresso.");
+            return BadRequest("Erro ao tentar comprar um ingresso.");
         }
     }
 }
