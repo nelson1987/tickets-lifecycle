@@ -27,7 +27,7 @@ jobs:
     - name: Go to Test folder
       run: cd tests/Blt.Tests
     - name: Create test environment
-      run: docker compose up --build
+      run: docker-compose up --build
     - name: Go to Root folder
       run: cd ../
     - name: Test
