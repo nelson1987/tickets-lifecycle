@@ -41,6 +41,7 @@ public class TicketController : ControllerBase
                 return BadRequest($"Já existe ticket para {command.Event} comprado com este documento.");
 
             var purchasableticket = command.MapTo<Ticket>();
+            purchasableticket.Open();
             await _repository.AddTicketAsync(purchasableticket);
 
             var reservedticket = purchasableticket.MapTo<TicketReservedEvent>();
