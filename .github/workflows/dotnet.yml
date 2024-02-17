@@ -28,9 +28,10 @@ jobs:
       # with:
       #   compose-file: "./tests/Blt.Tests/docker-compose.yml"
       #   run: docker-compose up --build
-      run: docker-compose -f 'tests/Blt.Tests/docker-compose.yaml' up
-      
+      run: docker-compose -f 'tests/Blt.Tests/docker-compose.yaml' up -d
+    - name: Test
+      run: dotnet test --no-build --verbosity normal      
     - name: Remove test environment
-      run: sleep 1000 docker-compose -f 'tests/Blt.Tests/docker-compose.yaml' down
+      run: sleep 10 docker-compose -f 'tests/Blt.Tests/docker-compose.yaml' down
     - name: Test
       run: dotnet test --no-build --verbosity normal
