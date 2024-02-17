@@ -11,21 +11,19 @@ public class TicketControllerIntegrationTest : BaseIntegrationTest
     {
     }
 
-    [Fact]
-    public async Task BuyTicket_Buy_Succesfully_IntegrationTest()
+    [Theory]
+    [InlineData("Futebol", "12345678901")]
+    public async Task BuyTicket_Buy_Succesfully_IntegrationTest(string evento, string documento)
     {
-        var evento = "Futebol";
-        var documento = "12345678901";
         await BuyNewTicket(evento, documento);
         await CheckIfNewTicketWasBuyed(evento, documento);
         CheckNewReservedTicketEvent(evento, documento);
     }
 
-    [Fact]
-    public async Task BuyTicket_Buy_Fail_Duplicate_Key_IntegrationTest()
+    [Theory]
+    [InlineData("Futebol", "12345678901")]
+    public async Task BuyTicket_Buy_Fail_Duplicate_Key_IntegrationTest(string evento, string documento)
     {
-        var evento = "Futebol";
-        var documento = "12345678901";
         await BuyNewTicket(evento, documento);
         await BuyDuplicateTicket(evento, documento);
     }

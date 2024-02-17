@@ -2,6 +2,7 @@ using Blt.Core.Features.Tickets;
 using Blt.Core.Features.Tickets.BuyTickets;
 using Blt.Core.Features.Tickets.GetTicket;
 using Blt.Core.Utils;
+using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Blt.Api.Controllers;
@@ -12,11 +13,15 @@ public class TicketController : ControllerBase
 {
     private readonly ITicketRepository _repository;
     private readonly IEventMessaging _eventMessaging;
+    private readonly IValidator<BuyTicketCommand> _validator;
 
-    public TicketController(ITicketRepository repository, IEventMessaging eventMessaging)
+    public TicketController(ITicketRepository repository,
+        IEventMessaging eventMessaging,
+        IValidator<BuyTicketCommand> validator)
     {
         _repository = repository;
         _eventMessaging = eventMessaging;
+        _validator = validator;
     }
 
     [HttpGet("{evento}/{documento}", Name = "GetTicket")]
@@ -36,6 +41,10 @@ public class TicketController : ControllerBase
     {
         try
         {
+            var validation = _validator.Validate(command);
+            if (validation.IsInvalid())
+                return UnprocessableEntity(validation.ToModelState());
+
             var purchasedTicket = await _repository.GetEventByDocument(command.Event, command.Document);
             if (purchasedTicket != null)
                 return BadRequest($"Já existe ticket para {command.Event} comprado com este documento.");

@@ -1,5 +1,7 @@
 ﻿using Blt.Core.Consumers;
 using Blt.Core.Features.Tickets;
+using Blt.Core.Features.Tickets.BuyTickets;
+using FluentValidation;
 using MassTransit;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -9,7 +11,8 @@ public static class Dependencies
 {
     public static IServiceCollection AddCore(this IServiceCollection services)
     {
-        services.AddScoped<ITicketRepository, TicketRepository>()
+        services.AddScoped<IValidator<BuyTicketCommand>, BuyTicketCommandValidator>()
+                .AddScoped<ITicketRepository, TicketRepository>()
                 .AddScoped<IEventMessaging, EventMessaging>();
         return services;
     }
@@ -17,17 +20,15 @@ public static class Dependencies
     {
         services.AddMassTransit(x =>
         {
-            services.AddMassTransit(x =>
+            x.SetKebabCaseEndpointNameFormatter();
+            x.AddConsumer<TicketReservedConsumer>();
+            x.UsingRabbitMq((ctx, cfg) =>
             {
-                x.SetKebabCaseEndpointNameFormatter();
-                x.AddConsumer<TicketReservedConsumer>();
-                x.UsingRabbitMq((ctx, cfg) =>
-                {
-                    cfg.Host("amqp://guest:guest@localhost:5672");
-                    cfg.ConfigureEndpoints(ctx);
-                });
+                cfg.Host("amqp://guest:guest@localhost:5672");
+                cfg.ConfigureEndpoints(ctx);
             });
         });
+
         return services;
     }
 }

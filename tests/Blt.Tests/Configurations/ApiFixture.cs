@@ -8,16 +8,5 @@ public class ApiFixture : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
         => builder.UseEnvironment("Testing")
-                    .ConfigureServices(services =>
-                    {
-                        services.AddMassTransitTestHarness(x =>
-                        {
-                        });
-                    });
-
-    //.ConfigureTestServices(services =>
-    //{
-    //    //services.Add
-    //});
-
+                    .ConfigureServices(services => services.AddMassTransitTestHarness());
 }

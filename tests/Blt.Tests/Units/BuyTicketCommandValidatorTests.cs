@@ -30,6 +30,7 @@ public class BuyTicketCommandValidatorTests
             .TestValidate(_command with { Event = string.Empty })
             .ShouldHaveValidationErrorFor(x => x.Event)
             .Only();
+
     [Fact]
     public void Given_a_request_with_invalid_document_should_fail_validation()
         => _validator
