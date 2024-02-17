@@ -12,16 +12,15 @@ namespace Blt.Api.Controllers;
 public class TicketController : ControllerBase
 {
     private readonly ITicketRepository _repository;
-    private readonly IEventMessaging _eventMessaging;
     private readonly IValidator<BuyTicketCommand> _validator;
-
+    private readonly IBuyTicketHandler _handler;
     public TicketController(ITicketRepository repository,
-        IEventMessaging eventMessaging,
-        IValidator<BuyTicketCommand> validator)
+        IValidator<BuyTicketCommand> validator,
+        IBuyTicketHandler handler)
     {
         _repository = repository;
-        _eventMessaging = eventMessaging;
         _validator = validator;
+        _handler = handler;
     }
 
     [HttpGet("{evento}/{documento}", Name = "GetTicket")]
@@ -39,28 +38,13 @@ public class TicketController : ControllerBase
     [HttpPost(Name = "BuyTicket")]
     public async Task<ActionResult> Buy(BuyTicketCommand command)
     {
-        try
-        {
-            var validation = _validator.Validate(command);
-            if (validation.IsInvalid())
-                return UnprocessableEntity(validation.ToModelState());
+        var validation = _validator.Validate(command);
+        if (validation.IsInvalid())
+            return UnprocessableEntity(validation.ToModelState());
 
-            var purchasedTicket = await _repository.GetEventByDocument(command.Event, command.Document);
-            if (purchasedTicket != null)
-                return BadRequest($"Já existe ticket para {command.Event} comprado com este documento.");
-
-            var purchasableticket = command.MapTo<Ticket>();
-            purchasableticket.Open();
-            await _repository.AddTicketAsync(purchasableticket);
-
-            var reservedticket = purchasableticket.MapTo<TicketReservedEvent>();
-            await _eventMessaging.SendTicketReservedAsync(reservedticket);
-
-            return StatusCode(201, "Ingresso reservado com sucesso");
-        }
-        catch (Exception)
-        {
-            return BadRequest("Erro ao tentar comprar um ingresso.");
-        }
+        var result = await _handler.Handle(command);
+        return result.IsFailed
+            ? BadRequest(result.Errors)
+            : StatusCode(201, "Ingresso reservado com sucesso");
     }
 }

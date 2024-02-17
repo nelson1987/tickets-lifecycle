@@ -11,7 +11,8 @@ public static class Dependencies
 {
     public static IServiceCollection AddCore(this IServiceCollection services)
     {
-        services.AddScoped<IValidator<BuyTicketCommand>, BuyTicketCommandValidator>()
+        services.AddScoped<IBuyTicketHandler, BuyTicketHandler>()
+                .AddScoped<IValidator<BuyTicketCommand>, BuyTicketCommandValidator>()
                 .AddScoped<ITicketRepository, TicketRepository>()
                 .AddScoped<IEventMessaging, EventMessaging>();
         return services;

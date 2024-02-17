@@ -4,6 +4,7 @@ using Blt.Api.Controllers;
 using Blt.Core.Features.Tickets;
 using Blt.Core.Features.Tickets.BuyTickets;
 using Blt.Core.Features.Tickets.GetTicket;
+using FluentResults;
 using FluentValidation;
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,83 @@ using Moq;
 
 namespace Blt.Tests.Units;
 
+public class BuyTIcketHandlerUnitTest
+{
+    private readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
+    private readonly BuyTicketHandler _controller;
+    private readonly BuyTicketCommand _request;
+    private readonly Ticket _ticket;
+    private readonly Mock<ITicketRepository> _repository;
+    private readonly Mock<IEventMessaging> _messaging;
+
+    public BuyTIcketHandlerUnitTest()
+    {
+        _request = _fixture.Build<BuyTicketCommand>()
+            .Create();
+
+        _repository = _fixture.Freeze<Mock<ITicketRepository>>();
+        _repository
+             .Setup(x => x.AddTicketAsync(It.IsAny<Ticket>()))
+             .Returns(Task.CompletedTask);
+        _repository
+             .Setup(x => x.GetEventByDocument(_request.Event, _request.Document))
+             .Returns(Task.FromResult((Ticket?)null));
+
+        _messaging = _fixture.Freeze<Mock<IEventMessaging>>();
+        _messaging
+             .Setup(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()))
+             .Returns(Task.CompletedTask);
+
+        _ticket = _fixture.Build<Ticket>()
+            .With(x => x.Event, _request.Event)
+            .With(x => x.Document, _request.Document)
+            .Create();
+
+        _controller = _fixture.Build<BuyTicketHandler>()
+            .Create();
+    }
+
+    [Fact]
+    public async Task BuyTicket_Buy_Succesfully_UnitTest()
+    {
+        var response = await _controller.Handle(_request);
+        Assert.True(response.IsSuccess);
+
+        _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Once);
+        _repository.Verify(x => x.AddTicketAsync(It.IsAny<Ticket>()), Times.Once);
+        _messaging.Verify(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task BuyTicket_Document_Has_One_Ticket_Buyed_UnitTest()
+    {
+        _repository
+             .Setup(x => x.GetEventByDocument(_request.Event, _request.Document))
+             .Returns(Task.FromResult(_ticket)!);
+
+        var response = await _controller.Handle(_request);
+        Assert.False(response.IsSuccess);
+
+        _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Once);
+        _repository.Verify(x => x.AddTicketAsync(It.IsAny<Ticket>()), Times.Never);
+        _messaging.Verify(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task BuyTicket_Cant_Add_Ticket_In_Database_UnitTest()
+    {
+        _repository
+             .Setup(x => x.AddTicketAsync(It.IsAny<Ticket>()))
+             .Throws(new Exception("Duplicated Key"));
+
+        var response = await _controller.Handle(_request);
+        Assert.False(response.IsSuccess);
+
+        _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Once);
+        _repository.Verify(x => x.AddTicketAsync(It.IsAny<Ticket>()), Times.Once);
+        _messaging.Verify(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()), Times.Never);
+    }
+}
 public class TicketControllerUnitTest
 {
     private readonly IFixture _fixture = new Fixture().Customize(new AutoMoqCustomization());
@@ -19,7 +97,7 @@ public class TicketControllerUnitTest
     private readonly Ticket _ticket;
     private readonly Mock<IValidator<BuyTicketCommand>> _validator;
     private readonly Mock<ITicketRepository> _repository;
-    private readonly Mock<IEventMessaging> _messaging;
+    private readonly Mock<IBuyTicketHandler> _messaging;
 
     public TicketControllerUnitTest()
     {
@@ -39,10 +117,10 @@ public class TicketControllerUnitTest
              .Setup(x => x.GetEventByDocument(_request.Event, _request.Document))
              .Returns(Task.FromResult((Ticket?)null));
 
-        _messaging = _fixture.Freeze<Mock<IEventMessaging>>();
+        _messaging = _fixture.Freeze<Mock<IBuyTicketHandler>>();
         _messaging
-             .Setup(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()))
-             .Returns(Task.CompletedTask);
+             .Setup(x => x.Handle(_request))
+             .Returns(Task.FromResult(Result.Ok()));
 
         _ticket = _fixture.Build<Ticket>()
             .With(x => x.Event, _request.Event)
@@ -64,9 +142,7 @@ public class TicketControllerUnitTest
         //var responseDto = JsonConvert.DeserializeObject<>(await response.Content.ReadAsStringAsync());
 
         _validator.Verify(x => x.Validate(_request), Times.Once);
-        _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Once);
-        _repository.Verify(x => x.AddTicketAsync(It.IsAny<Ticket>()), Times.Once);
-        _messaging.Verify(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()), Times.Once);
+        _messaging.Verify(x => x.Handle(_request), Times.Once);
     }
 
     [Fact]
@@ -81,43 +157,22 @@ public class TicketControllerUnitTest
         Assert.Equal(422, result.StatusCode);
 
         _validator.Verify(x => x.Validate(_request), Times.Once);
-        _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Never);
-        _repository.Verify(x => x.AddTicketAsync(It.IsAny<Ticket>()), Times.Never);
-        _messaging.Verify(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()), Times.Never);
+        _messaging.Verify(x => x.Handle(_request), Times.Never);
     }
 
     [Fact]
-    public async Task BuyTicket_Document_Has_One_Ticket_Buyed_UnitTest()
+    public async Task BuyTicket_Document_Fail_Handler_Buyed_UnitTest()
     {
-        _repository
-             .Setup(x => x.GetEventByDocument(_request.Event, _request.Document))
-             .Returns(Task.FromResult(_ticket)!);
+        _messaging
+             .Setup(x => x.Handle(_request))
+             .Returns(Task.FromResult(Result.Fail("error")));
 
         var response = await _controller.Buy(_request);
         ObjectResult result = (ObjectResult)response;
         Assert.Equal(400, result.StatusCode);
 
         _validator.Verify(x => x.Validate(_request), Times.Once);
-        _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Once);
-        _repository.Verify(x => x.AddTicketAsync(It.IsAny<Ticket>()), Times.Never);
-        _messaging.Verify(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task BuyTicket_Cant_Add_Ticket_In_Database_UnitTest()
-    {
-        _repository
-             .Setup(x => x.AddTicketAsync(It.IsAny<Ticket>()))
-             .Throws(new Exception("Duplicated Key"));
-
-        var response = await _controller.Buy(_request);
-        ObjectResult result = (ObjectResult)response;
-        Assert.Equal(400, result.StatusCode);
-
-        _validator.Verify(x => x.Validate(_request), Times.Once);
-        _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Once);
-        _repository.Verify(x => x.AddTicketAsync(It.IsAny<Ticket>()), Times.Once);
-        _messaging.Verify(x => x.SendTicketReservedAsync(It.IsAny<TicketReservedEvent>()), Times.Never);
+        _messaging.Verify(x => x.Handle(_request), Times.Once);
     }
 
     [Fact]
