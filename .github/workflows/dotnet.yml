@@ -25,7 +25,7 @@ jobs:
     - name: Build
       run: dotnet build --no-restore
     - name: Go to Test folder
-      run: cd tests\Blt.Tests
+      run: cd tests/Blt.Tests
     - name: Create test environment
       run: docker compose up --build
     - name: Go to Root folder
