@@ -5,13 +5,13 @@ namespace Blt.Tests.Configurations;
 
 public class MongoFixture
 {
-    public readonly ITicketRepository repository;
+    public readonly ITicketRepository ticketRepository;
     public MongoFixture(ApiFixture Server)
     {
-        repository = Server.Services.GetRequiredService<ITicketRepository>();
+        ticketRepository = Server.Services.GetRequiredService<ITicketRepository>();
     }
     public async Task DeleteAll()
     {
-        await repository.DeleteAll();
+        await ticketRepository.DeleteAll();
     }
 }

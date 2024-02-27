@@ -12,7 +12,8 @@ public class AutomapperProfile : Profile
         CreateMap<BuyTicketCommand, Ticket>()
             .ForMember(x => x.Id, y => y.Ignore())
             .ForMember(x => x.Status, y => y.Ignore());
-        CreateMap<Ticket, TicketReservedEvent>();
+        CreateMap<Ticket, TicketReservedEvent>()
+            .ForMember(x => x.GameId, y => y.Ignore());
         CreateMap<Ticket, GetTicketResponse>();
     }
 }

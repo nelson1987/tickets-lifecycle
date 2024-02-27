@@ -15,6 +15,7 @@ public class TicketControllerIntegrationTest : BaseIntegrationTest
     [InlineData("Futebol", "12345678901")]
     public async Task BuyTicket_Buy_Succesfully_IntegrationTest(string evento, string documento)
     {
+        await MongoFixture.ticketRepository.AddTicketAsync(new Core.Features.Tickets.Ticket() { Status = Core.Features.Tickets.TicketStatus.Open, Document = documento, Event = evento });
         await BuyNewTicket(evento, documento);
         await CheckIfNewTicketWasBuyed(evento, documento);
         CheckNewReservedTicketEvent(evento, documento);

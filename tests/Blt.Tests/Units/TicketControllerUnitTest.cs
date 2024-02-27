@@ -20,6 +20,7 @@ public class BuyTIcketHandlerUnitTest
     private readonly Ticket _ticket;
     private readonly Mock<ITicketRepository> _repository;
     private readonly Mock<IEventMessaging> _messaging;
+    private readonly Guid _gameId;
 
     public BuyTIcketHandlerUnitTest()
     {
@@ -43,7 +44,7 @@ public class BuyTIcketHandlerUnitTest
             .With(x => x.Event, _request.Event)
             .With(x => x.Document, _request.Document)
             .Create();
-
+        _gameId = Guid.NewGuid();
         _controller = _fixture.Build<BuyTicketHandler>()
             .Create();
     }
@@ -51,7 +52,7 @@ public class BuyTIcketHandlerUnitTest
     [Fact]
     public async Task BuyTicket_Buy_Succesfully_UnitTest()
     {
-        var response = await _controller.Handle(_request);
+        var response = await _controller.Handle(_request, _gameId);
         Assert.True(response.IsSuccess);
 
         _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Once);
@@ -66,7 +67,7 @@ public class BuyTIcketHandlerUnitTest
              .Setup(x => x.GetEventByDocument(_request.Event, _request.Document))
              .Returns(Task.FromResult(_ticket)!);
 
-        var response = await _controller.Handle(_request);
+        var response = await _controller.Handle(_request, _gameId);
         Assert.False(response.IsSuccess);
 
         _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Once);
@@ -81,7 +82,7 @@ public class BuyTIcketHandlerUnitTest
              .Setup(x => x.AddTicketAsync(It.IsAny<Ticket>()))
              .Throws(new Exception("Duplicated Key"));
 
-        var response = await _controller.Handle(_request);
+        var response = await _controller.Handle(_request, _gameId);
         Assert.False(response.IsSuccess);
 
         _repository.Verify(x => x.GetEventByDocument(_request.Event, _request.Document), Times.Once);
@@ -98,6 +99,7 @@ public class TicketControllerUnitTest
     private readonly Mock<IValidator<BuyTicketCommand>> _validator;
     private readonly Mock<ITicketRepository> _repository;
     private readonly Mock<IBuyTicketHandler> _messaging;
+    private readonly Guid _gameId;
 
     public TicketControllerUnitTest()
     {
@@ -116,10 +118,10 @@ public class TicketControllerUnitTest
         _repository
              .Setup(x => x.GetEventByDocument(_request.Event, _request.Document))
              .Returns(Task.FromResult((Ticket?)null));
-
+        _gameId = Guid.NewGuid();
         _messaging = _fixture.Freeze<Mock<IBuyTicketHandler>>();
         _messaging
-             .Setup(x => x.Handle(_request))
+             .Setup(x => x.Handle(_request, _gameId))
              .Returns(Task.FromResult(Result.Ok()));
 
         _ticket = _fixture.Build<Ticket>()
@@ -142,7 +144,7 @@ public class TicketControllerUnitTest
         //var responseDto = JsonConvert.DeserializeObject<>(await response.Content.ReadAsStringAsync());
 
         _validator.Verify(x => x.Validate(_request), Times.Once);
-        _messaging.Verify(x => x.Handle(_request), Times.Once);
+        _messaging.Verify(x => x.Handle(_request, _gameId), Times.Once);
     }
 
     [Fact]
@@ -157,14 +159,14 @@ public class TicketControllerUnitTest
         Assert.Equal(422, result.StatusCode);
 
         _validator.Verify(x => x.Validate(_request), Times.Once);
-        _messaging.Verify(x => x.Handle(_request), Times.Never);
+        _messaging.Verify(x => x.Handle(_request, _gameId), Times.Never);
     }
 
     [Fact]
     public async Task BuyTicket_Document_Fail_Handler_Buyed_UnitTest()
     {
         _messaging
-             .Setup(x => x.Handle(_request))
+             .Setup(x => x.Handle(_request, _gameId))
              .Returns(Task.FromResult(Result.Fail("error")));
 
         var response = await _controller.Buy(_request);
@@ -172,7 +174,7 @@ public class TicketControllerUnitTest
         Assert.Equal(400, result.StatusCode);
 
         _validator.Verify(x => x.Validate(_request), Times.Once);
-        _messaging.Verify(x => x.Handle(_request), Times.Once);
+        _messaging.Verify(x => x.Handle(_request, _gameId), Times.Once);
     }
 
     [Fact]

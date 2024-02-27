@@ -4,7 +4,7 @@ using FluentResults;
 namespace Blt.Core.Features.Tickets.BuyTickets;
 public interface IBuyTicketHandler
 {
-    Task<Result> Handle(BuyTicketCommand command);
+    Task<Result> Handle(BuyTicketCommand command, Guid idGame);
 }
 public class BuyTicketHandler : IBuyTicketHandler
 {
@@ -17,7 +17,7 @@ public class BuyTicketHandler : IBuyTicketHandler
         _repository = repository;
         _eventMessaging = eventMessaging;
     }
-    public async Task<Result> Handle(BuyTicketCommand command)
+    public async Task<Result> Handle(BuyTicketCommand command, Guid idGame)
     {
         try
         {
@@ -30,6 +30,7 @@ public class BuyTicketHandler : IBuyTicketHandler
             await _repository.AddTicketAsync(purchasableticket);
 
             var reservedticket = purchasableticket.MapTo<TicketReservedEvent>();
+            reservedticket.GameId = idGame;
             await _eventMessaging.SendTicketReservedAsync(reservedticket);
 
             return Result.Ok();

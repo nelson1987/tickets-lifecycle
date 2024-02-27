@@ -14,6 +14,7 @@ public static class Dependencies
         services.AddScoped<IBuyTicketHandler, BuyTicketHandler>()
                 .AddScoped<IValidator<BuyTicketCommand>, BuyTicketCommandValidator>()
                 .AddScoped<ITicketRepository, TicketRepository>()
+                .AddScoped<IMatchRepository, MatchRepository>()
                 .AddScoped<IEventMessaging, EventMessaging>();
         return services;
     }
